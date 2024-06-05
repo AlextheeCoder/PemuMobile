@@ -1,4 +1,4 @@
-import {View,Image,TouchableOpacity ,Text,  Modal, ActivityIndicator } from 'react-native'
+import {View,Image,TouchableOpacity ,Text,  Modal, ActivityIndicator ,ScrollView} from 'react-native'
 import { React,useState,useEffect} from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import InfoBox from '../../components/InfoBox';
@@ -118,8 +118,9 @@ const Farmer = () => {
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       </Modal>
+      <ScrollView>
 
-    <View className="w-full justify-center items-center mt-6 mb-12 px-4" >
+      <View className="w-full justify-center items-center mt-6 mb-12 px-4" >
          
          <View className="w-16 h-16 border border-secondary rounded-lg justify-center items-center" >
 
@@ -224,7 +225,7 @@ const Farmer = () => {
       </View>
 
           {/* View crops grown */}
-          <View className="mt-10 bg-slate-50 shadow-md rounded-lg overflow-hidden h-[150px] w-[90%] ml-5 items-center">
+          <View className="mt-10 bg-slate-50 shadow-md rounded-lg overflow-hidden h-[150px] w-[90%] ml-5 items-center mb-10">
         <View className="p-6">
         <Text className="text-lg text-black underline font-pbold"> Products in Use</Text>
         
@@ -294,6 +295,8 @@ const Farmer = () => {
       
 
      </View>
+      </ScrollView>
+
     </SafeAreaView>
   )
 }

@@ -13,6 +13,8 @@ import InformationCard from '../../components/InformationCard';
 import * as Location from 'expo-location';
 import Trending from '../../components/Trending';
 import LatestVisitCard from '../../components/LatestVisitCard';
+import axios from 'axios';
+import BlogCard from '../../components/BlogCard';
 
 const Home = () => {
   
@@ -29,6 +31,19 @@ const Home = () => {
   const [description, setDescription] = useState(null);
   const [temperature, setTemperature] = useState(null);
   const [currentWeather, setCurrentWeather] = useState(null);
+  const [blogs, setBlogs] = useState([]);
+
+  useEffect(() => {
+    axios.get('https://pemuagrifood.com/api/blogs')
+      .then(response => {
+        setBlogs(response.data.blogs.data);
+      })
+      .catch(error => {
+        console.error(error);
+      
+      });
+  }, []);
+
 
  
 
@@ -199,7 +214,7 @@ const Home = () => {
           <SearchInput />
           <View>
             <View className="flex-row" >
-            <Text className="text-lg font-pregular text-black-100">
+            <Text className="text-lg font-psemibold ">
                 Latest Visits
           </Text>
           <TouchableOpacity className=" ml-44" onPress={()=> router.push('/allview/visits')} > 
@@ -212,7 +227,7 @@ const Home = () => {
           </View>  
           
         <View className="w-full flex-1 pt-5 flex-row">
-              <Text className="text-lg font-pregular text-black-100">
+        <Text className="text-lg font-psemibold ">
                 Latest Farmers
               </Text>
               
@@ -233,21 +248,19 @@ const Home = () => {
         />
        )}
        ListFooterComponent={() => (
-        <View className="my-6 px-4 space-y-6 -mt-5">
-        <View className="w-full flex-1  flex-row">
-        <Text className="text-lg font-pregular text-black-100">
-          Read Pemu
-        </Text>
-        
-         <TouchableOpacity className="ml-44"> 
-            <Text className=" text-sm mt-1 text-right  font-psemibold text-blue-600" > View All </Text>
-          </TouchableOpacity>
-       
-       <Trending
-       
-        />
-      </View>
-      </View>
+        <View className="px-3 mb-5  " >
+        <View className="flex-row" >
+        <Text className="text-lg font-psemibold ">
+           Read Pemu
+      </Text>
+      <TouchableOpacity className=" ml-44" > 
+              <Text className=" text-sm mt-1 text-right  font-psemibold text-blue-600" > View All </Text>
+            </TouchableOpacity>
+        </View>
+   
+      <BlogCard blogs={blogs} />
+     
+      </View> 
        )}
 
        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

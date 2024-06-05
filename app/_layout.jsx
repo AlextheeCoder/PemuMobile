@@ -39,6 +39,7 @@ const RootLayout = () => {
       <Stack.Screen name='allview/farmers' options={{headerShown: true, headerTitle:"All Farmers"}} />
       <Stack.Screen name='allview/visits' options={{headerShown: true, headerTitle:"All Visits"}} />
       <Stack.Screen name='visit/[visit]' options={{headerShown: true,headerTitle:"Visit Details"}} />
+      <Stack.Screen name='blog/[blog]' options={{headerShown: true,headerTitle:"Pemu Blog"}} />
     </Stack>
     </GlobalProvider>
 
