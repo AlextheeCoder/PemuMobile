@@ -16,6 +16,7 @@ const BlogDetail = () => {
             try {
                 const response = await axios.get(`https://pemuagrifood.com/api/blog/post/${item.blog}`);
                 setBlog(response.data.blog);
+                setLoading(false);
             } catch (error) {
                 console.error(error);
             } finally {
@@ -30,25 +31,38 @@ const BlogDetail = () => {
         p: {
             fontSize: 16,
             lineHeight: 24,
+            color: '#333',
             
         },
         h1: {
             fontSize: 24,
             fontWeight: 'bold',
             marginBottom: -4,
+            color: '#000',
         },
         h2: {
+            fontWeight: 'bold',
             marginBottom: -4,
+            color: '#000',
         },
         ul: {
             fontSize: 16,
             marginBottom: -4,
+            lineHeight: 24,
+            color: '#333',
         },
         img: {
             width: 300,
             marginBottom: -28,
             borderRadius: 10,
-        }
+        },
+        ol: {
+            fontSize: 16,
+            marginBottom: -4,
+            marginLeft: 18,
+            lineHeight: 24,
+            color: '#333',
+        },
       
     };
 
@@ -61,25 +75,14 @@ const BlogDetail = () => {
         return new Date(dateString).toLocaleDateString(undefined, options);
     };
 
-    if (loading) {
-        return (
-            <Modal
-                transparent={true}
-                animationType={'none'}
-                visible={loading}
-                onRequestClose={() => { console.log('close modal') }}>
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#00000040' }}>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                </View>
-            </Modal>
-        );
-    }
+
 
     if (!blog) {
         return (
             <SafeAreaView className="min-h-[85vh]">
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text>Blog not found.</Text>
+                    <ActivityIndicator size="large" color="#0000ff" />
+                    <Text>Loading Blog...</Text>
                 </View>
             </SafeAreaView>
         );
@@ -88,15 +91,6 @@ const BlogDetail = () => {
   return (
 
     <SafeAreaView  className="min-h-[85vh]" >
-    <Modal
-    transparent={true}
-    animationType={'none'}
-    visible={loading}
-    onRequestClose={() => { console.log('close modal') }}>
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#00000040' }}>
-      <ActivityIndicator size="large" color="#0000ff" />
-    </View>
-  </Modal>
   <ScrollView>
       <View className="my-6 px-4 space-y-6" >
       

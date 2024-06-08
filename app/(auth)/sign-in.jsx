@@ -39,7 +39,7 @@ const SignIn = () => {
   };
 
   return (
-    <SafeAreaView  className="h -full" >
+    <SafeAreaView  className="h-full bg-white" >
       <ScrollView>
         <View className="w-full justify-center min-h-[85vh] px-4 my-6" >
 
@@ -69,11 +69,8 @@ const SignIn = () => {
          isLoading={isSubmitting}
         
           />
-           <View className="justify-center pt-5 flex-row gap-2">
-          <Text className="text-lg text-blue-600 font-pregular" >
-            Don't have an account?
-          </Text>
-          <Link href="/sign-up" className="text-lg text-red-600 font-pregular" >Sign Up</Link>
+         <View className="justify-center pt-5 flex-row gap-2">
+            <Link href="/sign-up" className="text-lg text-blue-500 font-pregular" >  Don't have an account? Sign Up</Link>
         </View>
         </View>
 

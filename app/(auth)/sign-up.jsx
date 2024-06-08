@@ -38,7 +38,7 @@ const SignUp = () => {
   }
 
   return (
-    <SafeAreaView  className="h -full" >
+    <SafeAreaView  className="h-full bg-white" >
       <ScrollView>
         <View className="w-full justify-center min-h-[85vh] px-4 my-6" >
 
@@ -76,10 +76,7 @@ const SignUp = () => {
         
           />
            <View className="justify-center pt-5 flex-row gap-2">
-          <Text className="text-lg text-blue-600 font-pregular" >
-            Have an account already?
-          </Text>
-          <Link href="/sign-in" className="text-lg text-red-600 font-pregular" >Sign In</Link>
+          <Link href="/sign-in" className="text-lg text-blue-500 font-pregular" >Have an account already? Sign In</Link>
         </View>
         </View>
 

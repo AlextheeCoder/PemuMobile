@@ -1,17 +1,16 @@
-import {StyleSheet, Text, View,Image, FlatList, RefreshControl, Modal, ActivityIndicator, TouchableOpacity} from 'react-native'
+import {Text, View,Image, FlatList, RefreshControl, Modal, ActivityIndicator, TouchableOpacity} from 'react-native'
 import { React,useState,useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {images} from  '../../constants'
 import SearchInput from '../../components/SearchInput';
 import EmptyState from '../../components/EmptyState';
-import { getLatestFarmers, getLatestVisits } from '../../lib/appwrite';
+import { getLatestFarmers, getLatestVisits, getTopCrop, getTopInput } from '../../lib/appwrite';
 import useAppwrite from '../../lib/useAppwrite';
 import FarmerCard from '../../components/FarmerCard';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { router } from 'expo-router';
 import InformationCard from '../../components/InformationCard';
 import * as Location from 'expo-location';
-import Trending from '../../components/Trending';
 import LatestVisitCard from '../../components/LatestVisitCard';
 import axios from 'axios';
 import BlogCard from '../../components/BlogCard';
@@ -21,8 +20,10 @@ const Home = () => {
   const openWeatherKey = '01a34fc2805351837988550053ecf642'
   const {data: farmers, refetch,loading} = useAppwrite(getLatestFarmers);
   const {data: visits} = useAppwrite(getLatestVisits);
+  const {data: topcrop} = useAppwrite(getTopCrop);
+  const {data: topInput} = useAppwrite(getTopInput);
 
-  const {user,setUser, setIsLogged} = useGlobalContext();
+  const {user} = useGlobalContext();
   const  url = `https://api.openweathermap.org/data/2.5/weather?units=metric&appid=${openWeatherKey}`;
   const [latitude, setlatitude] = useState();
   const [longitude, setlongitude] = useState();
@@ -31,18 +32,41 @@ const Home = () => {
   const [description, setDescription] = useState(null);
   const [temperature, setTemperature] = useState(null);
   const [currentWeather, setCurrentWeather] = useState(null);
-  const [blogs, setBlogs] = useState([]);
+  const [latest, setlatest]=useState([]);
+  const [TopCrop, setTopCrop] = useState();
+  const [TopInput, setTopInput] = useState();
+  const [loadingBlogs, setloadingBlogs] = useState(true);
+
+
 
   useEffect(() => {
     axios.get('https://pemuagrifood.com/api/blogs')
       .then(response => {
-        setBlogs(response.data.blogs.data);
+        setlatest(response.data.latestblogs);
+        setloadingBlogs(false);
       })
       .catch(error => {
         console.error(error);
       
       });
   }, []);
+
+
+  useEffect(() => {
+    const fetchTopCrop = async () => {
+      try {
+        setTopCrop(topcrop);
+        setTopInput(topInput);
+      } catch (error) {
+        console.error('Error fetching top crop:', error);
+      }
+    };
+
+    fetchTopCrop();
+  }, []);
+  
+
+
 
 
  
@@ -172,16 +196,28 @@ const Home = () => {
             <View className="w-full flex-1 pt-5 pb-8 flex-row">
               
               <InformationCard 
-              title="Top Visited Location"
+             
               info={
-                <Text>
-                  Text
-                </Text>
+                <View className="mt-[-20px] ">
+                    <Text className="font-p-regular text-white text-lg" >
+                        Top Crop 🌱
+                    </Text>
+                    <Text className="text-secondary text-lg font-psemibold mt-4" >
+                      {topcrop}
+                    </Text>
+                    <Text className="font-p-regular text-white text-lg" >
+                        Top Input 🚜
+                    </Text>
+                    <Text className="text-secondary text-lg font-psemibold mt-4" >
+                      {topInput}
+                    </Text>
+                </View>
+              
               }
               />
              <InformationCard 
              
-             title={<Text className="mt-[-25px] text-xl font-plight" >
+             title={<Text className="mt-[-25px] text-xl font-plight text-white" >
              {description}
            </Text>}
 
@@ -190,7 +226,7 @@ const Home = () => {
                 <>
                 <View  >
                   
-                <Text className="text-xl font-psemibold " >
+                <Text className="text-xl font-psemibold  text-white" >
                   {Math.round(temperature) + "  °C"}
                 </Text>
 
@@ -253,12 +289,17 @@ const Home = () => {
         <Text className="text-lg font-psemibold ">
            Read Pemu
       </Text>
+
       <TouchableOpacity className=" ml-44" > 
-              <Text className=" text-sm mt-1 text-right  font-psemibold text-blue-600" > View All </Text>
+              <Text className=" text-sm mt-1 text-right  font-psemibold text-blue-600"  onPress={()=> router.push('/allview/blogs')}> View All </Text>
             </TouchableOpacity>
         </View>
    
-      <BlogCard blogs={blogs} />
+       {loadingBlogs ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <BlogCard blogs={latest} />
+        )}
      
       </View> 
        )}

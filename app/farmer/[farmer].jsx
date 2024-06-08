@@ -54,6 +54,7 @@ const Farmer = () => {
   };
 
   useEffect(() => {
+    console.log('Checking coordinates:', longitude, latitude);
     setShowTouchableOpacity(isValidCoordinates(longitude, latitude));
   }, [longitude, latitude]);
 
