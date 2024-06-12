@@ -156,8 +156,8 @@ const Editfarmer = () => {
   
 
   const initial = {
-    latitude: -1.2296623,
-    longitude: 36.7195019,
+    latitude: latitude,
+    longitude: longitude,
     latitudeDelta: 0.001,
     longitudeDelta: 0.001,
   };
