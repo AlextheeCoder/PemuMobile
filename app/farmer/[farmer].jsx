@@ -1,12 +1,13 @@
-import {View,Image,TouchableOpacity ,Text,  Modal, ActivityIndicator ,ScrollView} from 'react-native'
+import {View,Image,TouchableOpacity ,Text,  Modal, ActivityIndicator ,ScrollView ,FlatList} from 'react-native'
 import { React,useState,useEffect} from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import InfoBox from '../../components/InfoBox';
 import { useLocalSearchParams,router } from 'expo-router';
 import useAppwrite from '../../lib/useAppwrite';
 import CustomButton from '../../components/CustomButton'
-import { getFarmerById, getFarmerDetails,getFarmerVisits } from '../../lib/appwrite';
+import { getFarmerById, getFarmerDetails,getFarmerTransactions,getFarmerVisits } from '../../lib/appwrite';
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE,Polygon } from 'react-native-maps';
+import TransactionCard from '../../components/TransactionCard';
 
 
 
@@ -15,13 +16,14 @@ const Farmer = () => {
   const item = useLocalSearchParams();
   const userID=item.userID;
   const {data: visits} = useAppwrite( ()=> getFarmerVisits(item.$id));
+  const {data: transactiondata} = useAppwrite( ()=> getFarmerTransactions(item.$id));
   const {data: useid} =useAppwrite(()=> getFarmerById(item.$id))
   const {data: farmerDetails, loading} = useAppwrite( ()=> getFarmerDetails(item.$id));
 
   const checker = useid && useid.users ? useid.users.$id : null;
 
 
-
+  const [transactions, setTransactions] = useState([]);
   const [crops, setcrops] = useState();
   const [treatments, settreatments] = useState();
   const[size,setSize] = useState(0);
@@ -35,6 +37,7 @@ const Farmer = () => {
   const [showTouchableOpacity, setShowTouchableOpacity] = useState(false);
   const [locationModalVisoble, setlocationModalVisoble] = useState(false);
   const [formatedCoords, setformatedCoords] = useState([]);
+  const [isOutgrower, setisOutgrower] = useState(false);
 
   
   let farmerDocument;
@@ -62,6 +65,11 @@ const Farmer = () => {
     if (userID === checker) {
       setcheckifEqual(true);
     };
+
+    if (item.type === "Outgrower"){
+      setisOutgrower(true);
+    }
+  
   
     if (farmerDocument) {
       setcrops(farmerDocument.crops);
@@ -87,11 +95,16 @@ const Farmer = () => {
 
   }, [userID, checker, farmerDocument]);
 
-
-
   
-
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if(transactiondata){
+        setTransactions(transactiondata.documents);
+      } 
+    }
+    fetchTransactions();
   
+  }, [transactiondata]);
 
 
   const checkcoords = async () =>{
@@ -104,6 +117,7 @@ const Farmer = () => {
     latitudeDelta: 0.001,
     longitudeDelta: 0.001,
   }
+
 
 
 
@@ -170,10 +184,11 @@ const Farmer = () => {
       )}
 
         {checkifEqual && (
-  <View className="flex-row justify-between">
+          <View>
+ <View className="flex-row justify-between">
     <CustomButton
       title="Edit Details"
-      containerStyles="w-[45%] mt-5 mr-5"
+      containerStyles="w-[45%] mt-5 mr-3 rounded-lg bg-green-600"
       handlePress={() =>
         router.push({
           pathname: `/farmer/edit-farmer`,
@@ -184,7 +199,7 @@ const Farmer = () => {
 
     <CustomButton
       title="Visit Farmer"
-      containerStyles="w-[45%] mt-5"
+      containerStyles="w-[45%] mt-5 rounded-lg bg-secondary"
       handlePress={() =>
         router.push({
           pathname: `/farmer/create-vist`,
@@ -192,9 +207,39 @@ const Farmer = () => {
         })
       }
     />
+   
+  
+  </View>
+  <View className="flex-row justify-between" >
+  <CustomButton
+      title="Record Transaction"
+      containerStyles="w-[50%] mt-5 rounded-lg bg-blue-500"
+      handlePress={() =>
+        router.push({
+          pathname: `/farmer/create-transaction`,
+          params: { ...item, id: item.$id },
+        })
+      }
+    />
+    {isOutgrower && (
+        <CustomButton
+          title="Hela Status"
+          containerStyles="w-[45%] mt-5 rounded-lg bg-green-300"
+          handlePress={() =>
+            router.push({
+              pathname: `/farmer/hela-status`,
+              params: { ...item, id: item.$id },
+            })
+          }
+        />
+    )}
+  </View>
+  
+
 
   
   </View>
+ 
 )}
 
 
@@ -203,11 +248,13 @@ const Farmer = () => {
     
         
         {/* View crops grown */}
-      <View className="mt-10 bg-slate-50 shadow-md rounded-lg overflow-hidden h-[150px] w-[90%] ml-5 items-center">
-        <View className="p-6">
-        <Text className="text-lg text-black underline font-pbold"> CROPS GROWN </Text>
-
-          <View className="flex-row flex-wrap" >
+        <View className="w-full border-t border-b border-slate-300 mt-10">
+            <View className="mt-3 mb-3 ml-5" >
+              <Text className="text-sm font-psemibold" >
+               Crops Grown
+              </Text>
+            </View>
+            <View className="flex-row flex-wrap mb-4 ml-5" >
           {cropList.length > 0 ? ( 
                 cropList.map((crop, index) => (
                   <Text 
@@ -216,35 +263,78 @@ const Farmer = () => {
                   </Text>
                 ))
               ) : (
-                <Text>No crops found</Text> // Display message if no crops
+                <Text>No Crops found</Text> 
               )}
           </View>
+          </View>
 
-      
-            
-        </View>
-      </View>
-
-          {/* View crops grown */}
-          <View className="mt-10 bg-slate-50 shadow-md rounded-lg overflow-hidden h-[150px] w-[90%] ml-5 items-center mb-10">
-        <View className="p-6">
-        <Text className="text-lg text-black underline font-pbold"> Products in Use</Text>
-        
-        <View className="flex-row flex-wrap" >
+    {/* View Treatments used */}
+    <View className="w-full  border-b border-slate-300">
+            <View className="mt-3 mb-3 ml-5" >
+              <Text className="text-sm font-psemibold" >
+              Treatments in Use
+              </Text>
+            </View>
+            <View className="flex-row flex-wrap mb-4 ml-5" >
           {treatmentList.length > 0 ? ( 
                 treatmentList.map((treatment, index) => (
                   <Text 
-                  key={index} className="text-sm px-2 py-1 rounded-full  bg-secondary-100 text-white mx-1 my-1">
+                  key={index} className="text-sm px-2 py-1 rounded-full bg-secondary-100 text-white mx-1 my-1">
                     {treatment}
                   </Text>
                 ))
               ) : (
-                <Text>No treatments found</Text> // Display message if no crops
+                <Text>No Treatments found</Text> 
               )}
           </View>
+          </View>
+           {/* View Farmer Transactions */}
+        <View className="w-full  border-b border-slate-300 mb-20">
+            <View className="mt-3 mb-3 ml-5" >
+              <Text className="text-sm font-psemibold" >
+             {item.name}'s Transactions
+              </Text>
+            </View>
+            <View>
+              
+            <View className="flex-row flex-wrap mb-4 ml-3 justify-center items-center" >
+                  <View className="w-[40%]" > 
+                    <Text className="mr-3 text-sm font-psemibold underline">Product</Text>
+                  </View>
+                  <View className="w-[30%]" > 
+                  <Text className="mr-3 text-sm font-psemibold underline">Amount</Text>
+                  </View>
+                  <View className="w-[30%]" > 
+                  <Text className="mr-3 text-sm font-psemibold underline">Method</Text>
+                  </View>
+                </View>
+                { transactions && transactions.length === 0 ? (
+                  <Text className="ml-5 mb-1" >No transactions yet.</Text>
+                ) : (
+                  transactions && transactions.map((transaction) => (
+                    <View key={transaction.$id} className="flex-row flex-wrap mb-4 ml-3 justify-center items-center">
+                      <View className="w-[40%]">
+                        <Text className="mr-3 text-sm font-pregular">{transaction.product_name}</Text>
+                      </View>
+                      <View className="w-[30%]">
+                        <Text className="mr-3 text-sm font-pregular text-green-600">KES {transaction.amount}</Text>
+                      </View>
+                      <View className="w-[30%]">
+                        <Text className="text-sm px-2 py-1 rounded-lg bg-secondary-100 text-white mx-1 my-1">{transaction.payment_method}</Text>
+                      </View>
+                    </View>
+                  ))
+                )}
 
+
+          
+
+              
         </View>
-      </View>
+          
+          </View>
+
+   
 
       <Modal 
      

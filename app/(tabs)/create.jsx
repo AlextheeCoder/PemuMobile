@@ -1,14 +1,24 @@
 import { ScrollView, StyleSheet, Text, View ,Alert} from 'react-native'
-import React,{useState} from 'react'
+import React,{useState,useEffect} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import FormField from '../../components/FormField'
 import CustomButton from '../../components/CustomButton'
 import { useGlobalContext } from '../../context/GlobalProvider'
 import { creatFarmer } from '../../lib/appwrite'
 import { router } from 'expo-router'
+import { Dropdown } from 'react-native-element-dropdown'
+import AntDesign from '@expo/vector-icons/AntDesign';
+
+
+const data = [
+  { label: 'Walk In', value: 'Walk In' },
+  { label: 'Walk In With Service', value: 'Walk In With Service' },
+  { label: 'Outgrower', value: 'Outgrower' },
+];
 
 const create = () => {
 
+  const [value, setValue] = useState(null);
    const [uploading, setuploading] = useState(false)
    const { user } = useGlobalContext();
    const userId = user.$id;
@@ -16,6 +26,8 @@ const create = () => {
     name: '',
     phonenumber: '',
     location: '',
+    IDnumber: '',
+    type: value,
     userId: userId
   })
 
@@ -43,11 +55,37 @@ const create = () => {
         name: "",
         phonenumber: "",     
         location: "",
+        IDnumber: "",
       });
 
       setuploading(false);
     }
   }
+
+  useEffect(() => {
+    setform(prevForm => ({
+      ...prevForm,
+      type: value,
+    }));
+  }, [value]);
+  
+
+  const renderItem = item => {
+    return (
+      <View style={styles.item}>
+        <Text style={styles.textItem}>{item.label}</Text>
+        {item.value === value && (
+          <AntDesign
+            style={styles.icon}
+            color="black"
+            name="Safety"
+            size={20}
+          />
+        )}
+      </View>
+    );
+  };
+
 
   return (
  <SafeAreaView className="h-full bg-white " >
@@ -73,6 +111,41 @@ const create = () => {
           keyboardType="number-pad"
       />
        <FormField 
+          title="Farmer ID Number"
+          value={form.IDnumber}
+          placeholder="Enter Farmer ID Number"
+          handleChangeText={(e) => setform({...form, IDnumber: e})}
+          otherStyles="mt-10"
+          keyboardType="number-pad"
+      />
+      <View>
+        <Text className="mt-7 text-base font-pmedium" >
+          Type of Farmer
+        </Text>
+          <Dropdown
+            style={styles.dropdown}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.inputSearchStyle}
+            iconStyle={styles.iconStyle}
+            data={data}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Type"
+            searchPlaceholder="Search..."
+            value={value}
+            onChange={item => {
+              setValue(item.value);
+            }}
+            renderLeftIcon={() => (
+              <AntDesign style={styles.icon} color="black" name="Safety" size={20} />
+            )}
+            renderItem={renderItem}
+          />
+      </View>
+       
+       <FormField 
           title="Farm Location"
           value={form.location}
           placeholder="Enter Farm Location"
@@ -93,5 +166,50 @@ const create = () => {
 }
 
 export default create
+const styles = StyleSheet.create({
+  dropdown: {
+    borderWidth: 1,
+    borderColor: '#cbd5e0',
+    marginTop: 2,
+    height: 50,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
 
-const styles = StyleSheet.create({})
+    elevation: 2,
+  },
+  icon: {
+    marginRight: 5,
+  },
+  item: {
+    padding: 17,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  textItem: {
+    flex: 1,
+    fontSize: 16,
+  },
+  placeholderStyle: {
+    fontSize: 16,
+  },
+  selectedTextStyle: {
+    fontSize: 16,
+  },
+  iconStyle: {
+    width: 20,
+    height: 20,
+  },
+  inputSearchStyle: {
+    height: 40,
+    fontSize: 16,
+  },
+});
