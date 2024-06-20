@@ -84,6 +84,8 @@ const CreateTransaction = () => {
     setsalesPrice(formattedSalesPrices);
   }, [productsFromDB]);
 
+  
+
   // Handle change in selected product
   useEffect(() => {
     if (selectedProducts) {
@@ -202,6 +204,7 @@ const CreateTransaction = () => {
             labelField="label"
             valueField="value"
             placeholder="Select Product"
+            search
             searchPlaceholder="Search..."
             value={selectedProducts}
             onChange={item => {
