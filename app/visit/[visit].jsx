@@ -210,10 +210,10 @@ const Visit = () => {
             {region && (
                       <Text className="font-pregular text-base" >{region}</Text>
                     )}
-              <TouchableOpacity onPress={() => setlocationModalVisoble(true)} className=" flex flex-row items-center p-4 bg-white shadow-md rounded-lg mt-3 w-[95%] text-white border border-primary justify-center" >
+              {/* <TouchableOpacity onPress={() => setlocationModalVisoble(true)} className=" flex flex-row items-center p-4 bg-white shadow-md rounded-lg mt-3 w-[95%] text-white border border-primary justify-center" >
                 <Text className="text-lg font-pregular" >View Visit Location on Map </Text>
                     
-            </TouchableOpacity>
+            </TouchableOpacity> */}
               
           </View>
           </View>

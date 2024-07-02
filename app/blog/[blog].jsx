@@ -1,10 +1,8 @@
-import {View,Image,TouchableOpacity ,Text,  Modal, ActivityIndicator,SafeAreaView, ScrollView,useWindowDimensions   } from 'react-native'
-import{ React,useState,useEffect} from 'react'
-import { useLocalSearchParams,router  } from 'expo-router';
+import { View, Image, Text, ActivityIndicator, SafeAreaView, ScrollView, useWindowDimensions } from 'react-native';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import RenderHTML from 'react-native-render-html';
-
-
 
 const BlogDetail = () => {
     const item = useLocalSearchParams();
@@ -27,12 +25,11 @@ const BlogDetail = () => {
         fetchBlogDetail();
     }, [item]);
 
-    const htmlStyles = {
+    const htmlStyles = useMemo(() => ({
         p: {
             fontSize: 16,
             lineHeight: 24,
             color: '#333',
-            
         },
         h1: {
             fontSize: 24,
@@ -63,81 +60,65 @@ const BlogDetail = () => {
             lineHeight: 24,
             color: '#333',
         },
-      
-    };
+    }), []);
 
     const { width } = useWindowDimensions();
 
-    // Only set source if blog is not null
     const source = blog ? { html: blog.content } : null;
-    const formatDate = (dateString) => {
+
+    const formatDate = useCallback((dateString) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         return new Date(dateString).toLocaleDateString(undefined, options);
-    };
+    }, []);
 
-
-
-    if (!blog) {
+    if (loading) {
         return (
-            <SafeAreaView className="min-h-[85vh]">
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                    <Text>Loading Blog...</Text>
-                </View>
+            <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text>Loading Blog...</Text>
             </SafeAreaView>
         );
     }
 
-  return (
+    if (!blog) {
+        return (
+            <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <Text>Blog not found</Text>
+            </SafeAreaView>
+        );
+    }
 
-    <SafeAreaView  className="min-h-[85vh]" >
-  <ScrollView>
-      <View className="my-6 px-4 space-y-6" >
-      
-        <View className="px-4 mt-10 "  >
-                <View className="justify-center items-center w-full rounded-3xl " >
-                <Image 
-                      source={{ uri: `https://pemuagrifood.com/storage/${blog.image}` }}
-                      resizeMode='cover'
-                      className="w-full h-[200px] rounded-lg"
-                      />
+    return (
+        <SafeAreaView style={{ flex: 1 }}>
+            <ScrollView>
+                <View style={{ margin: 16 }}>
+                    <View style={{ alignItems: 'center', marginVertical: 16 }}>
+                        <Image 
+                            source={{ uri: `https://pemuagrifood.com/storage/${blog.image}` }}
+                            resizeMode='cover'
+                            style={{ width: '100%', height: 200, borderRadius: 10 }}
+                        />
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <Text style={{ fontSize: 14, fontWeight: '600'}} className="text-primary" >{blog.category}</Text>
+                        <Text style={{ fontSize: 14, fontWeight: '600'}} className=" text-secondary-100" >{formatDate(blog.created_at)}</Text>
+                    </View>
+                    <View style={{ borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#ccc', paddingVertical: 16 }}>
+                        <Text style={{ fontSize: 20, fontWeight: '700',marginBottom: 8 }} className="underline"  >
+                            {blog.title}
+                        </Text>
+                        {source && (
+                            <RenderHTML
+                                contentWidth={width}
+                                source={source}
+                                tagsStyles={htmlStyles}
+                            />
+                        )}
+                    </View>
                 </View>
-
-                <View className=" justify-between flex-row  mt-3 " >
-                  <View className=" justify-between flex-row  w-[45%] "> 
-                     <Text className="text-sm font-psemibold text-primary " >{blog.category}</Text>
-                    
-                  </View>
-                  <View className=" justify-between flex-row "> 
-                     <Text className="text-sm font-psemibold text-secondary-100 "  > {formatDate(blog.created_at)}</Text>
-                     
-                  </View>
-                  
-                    
-                </View>
-          </View>
-
-          <View className="w-full border-t border-b border-slate-300 ">
-            <View className="mt-3 mb-3" >
-              <Text className="text-lg font-psemibold underline text-primary" >
-               {blog.title}
-              </Text>
-            </View>
-            <View className="flex px-3" >
-            <RenderHTML
-                contentWidth={width}
-                source={source}
-                tagsStyles={htmlStyles}
-            />
-                   
-          </View>
-          </View>
-
-      </View>
-      </ScrollView>
-
-</SafeAreaView>
-  )
+            </ScrollView>
+        </SafeAreaView>
+    );
 }
 
-export default BlogDetail
+export default BlogDetail;

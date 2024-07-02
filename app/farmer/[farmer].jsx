@@ -164,7 +164,7 @@ const Farmer = () => {
           titleStyles="text-xl"
          />
           <InfoBox 
-          title={size + " acres"}
+          title={size + " m²"}
           containerStyles="ml-10"
           subtitle="Farm Size"
           titleStyles="text-xl"
@@ -175,13 +175,13 @@ const Farmer = () => {
      <View>
       
       <View className="justify-center items-center mt-[-10px] " >
-      {showTouchableOpacity && (
+      {/* {showTouchableOpacity && (
         <TouchableOpacity  onPress={() => setlocationModalVisoble(true)} >
           <Text className="text-lg text-blue-600 font-pregular mt-[-15px]">
             View on Map
           </Text>
         </TouchableOpacity>
-      )}
+      )} */}
 
         {checkifEqual && (
           <View>

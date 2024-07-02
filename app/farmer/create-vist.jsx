@@ -358,7 +358,7 @@ const submit = async () => {
           TextStyles=" text-xl font-pmedium mt-5"
         />
 
-          <View className="mt-5" >
+          {/* <View className="mt-5" >
             <Text className="text-xl mb-[-10px] font-pmedium" >Location: </Text>
             <TouchableOpacity onPress={() => setlocationModalVisoble(true)} className="ml-3 flex flex-row items-center p-4 bg-white shadow-md rounded-lg mt-3 w-[95%] text-white border border-primary" >
                 <Text className="text-lg font-pregular" >Set Location: </Text>
@@ -366,7 +366,7 @@ const submit = async () => {
                       <Text className=" text-lg font-pregular text-secondary-100 " >{region}</Text>
                     )}
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           <View className="mt-5 space-y-2" >
                     <Text className="text-base font-pmedium" >

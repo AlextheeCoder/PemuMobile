@@ -11,6 +11,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE,Polygon } from 'react-native-maps';
 import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler';
 import * as Location from 'expo-location';
+import FormField from '../../components/FormField'
 
 
 const EARTH_RADIUS = 6371000; // Earth radius in meters
@@ -148,6 +149,7 @@ const Editfarmer = () => {
     treatments: selectedTreatments.join(','),
     crops: selectedCrops.join(','),
     size: 0,
+    area:'',
     coordinates: [],
     Farmcoordinates: [`${latitude}`, `${longitude}`],
     documentId:documentId,
@@ -200,8 +202,8 @@ const Editfarmer = () => {
   
 
   const submit = async () => {
-    if (!form.size || !form.crops || !form.treatments) {
-      return Alert.alert("Please provide all fields");
+    if (!form.crops || !form.treatments || !form.area) {
+      return Alert.alert("Incomplete Form","Please provide all fields");
     }
 
     setuploading(true);
@@ -394,6 +396,19 @@ const Editfarmer = () => {
     </View>
 
 
+<View className="justify-center items-center" >
+<Text className="ml-[-110px] text-xl mb-[-20px] font-pmedium" >Enter Farm Size in m²:</Text>
+  <FormField 
+    value={form.area}
+    placeholder="Enter Farm Size in m²"
+    handleChangeText={(e) => setform({...form, area: e})}
+    otherStyles="w-[90%] "
+    keyboardType="number-pad"
+  />
+
+</View>
+
+{/* 
 <View className="justify-center mt-5" >
     <Text className="ml-6 text-xl mb-[-10px] font-pmedium" >Set Farm Size on Map:</Text>
     <TouchableOpacity onPress={()=>{setModalVisible(true)}} className="ml-3 flex flex-row items-center p-4 bg-white shadow-md rounded-lg mt-3 w-[93%] text-white border border-slate-500 justify-center" >
@@ -403,7 +418,7 @@ const Editfarmer = () => {
                
             </TouchableOpacity>
       
-    </View>
+    </View> */}
 
           <Modal
               animationType='slide'
