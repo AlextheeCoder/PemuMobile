@@ -2,7 +2,7 @@ import {StyleSheet, ScrollView, Modal, Text, View ,Alert,TouchableOpacity, Activ
 import React,{useState,useEffect,useRef} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CustomButton from '../../components/CustomButton'
-import {getAllProducts, createFarmerTransaction, updateHelaAccount } from '../../lib/appwrite'
+import {getAllProducts, createFarmerTransaction, updateHelaAccount,getFarmerCrops } from '../../lib/appwrite'
 import { useLocalSearchParams,router } from 'expo-router';
 import useAppwrite from '../../lib/useAppwrite';
 import { MultiSelect,Dropdown } from 'react-native-element-dropdown';
@@ -14,7 +14,8 @@ const CreateTransaction = () => {
   
   const item = useLocalSearchParams();
   const { data: productsFromDB, loading } = useAppwrite(getAllProducts);
-  
+  const { data: cropsFromDB } = useAppwrite(() => getFarmerCrops(item.$id));
+  const [farmerCrops, setFarmerCrops] = useState([]);
 
 
   // console.log(combinedName);
@@ -43,7 +44,7 @@ const CreateTransaction = () => {
   const [products, setProducts] = useState([]);
   const [salesPrice, setsalesPrice] = useState(null);
   const [selectedProductSalesPrice, setSelectedProductSalesPrice] = useState(null);
-  const [claclulatedAmount, setclaclulatedAmount] = useState();
+  const [selectedCrop, setselectedCrop] = useState(null);
   const helaFarmerID =item.$id;
 
    const [form, setform] = useState({
@@ -54,9 +55,11 @@ const CreateTransaction = () => {
     payment_method:selectedmethodofPayment,
     Mpesa_Code:'',
     farmerID: item.$id,
+    CropID: selectedCrop,
   });
   
 
+  console.log(selectedCrop);
   
   useEffect(() => {
     if (item.type === "Outgrower"){
@@ -84,7 +87,23 @@ const CreateTransaction = () => {
     setsalesPrice(formattedSalesPrices);
   }, [productsFromDB]);
 
+
+  useEffect(() => {
+    if (cropsFromDB && Array.isArray(cropsFromDB.documents)) {
+      const formattedCrops = cropsFromDB.documents.map(crop => {
+        const date = new Date(crop.planting_date);
+        const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`; // Format as DD-MM-YYYY
+        return {
+          label: `${crop.crop_name} (Planting Date: ${formattedDate})`,
+          value: crop.$id,
+        };
+      });
+      setFarmerCrops(formattedCrops);
+    }
+  }, [cropsFromDB]);
   
+  
+
 
   // Handle change in selected product
   useEffect(() => {
@@ -158,8 +177,9 @@ const CreateTransaction = () => {
       products: selectedProducts,
       units: selectedUnits,
       payment_method:selectedmethodofPayment,
+      CropID: selectedCrop,
     }));
-  }, [selectedUnits, selectedProducts,selectedmethodofPayment]);
+  }, [selectedUnits, selectedProducts,selectedmethodofPayment,selectedCrop]);
 
 
 
@@ -189,6 +209,38 @@ const CreateTransaction = () => {
         Transact with {item.name}
       </Text>
     </View>
+
+    {item.type === 'Outgrower' && (
+    <View className="justify-center mt-5" >
+    <Text className="ml-6 text-lg mb-[-10px] font-pregular" >Select Crop:</Text>
+    <View style={styles.container}>
+    <Dropdown
+            style={styles.dropdown}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.inputSearchStyle}
+            iconStyle={styles.iconStyle}
+            data={farmerCrops}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Crop"
+            search
+            searchPlaceholder="Search..."
+            value={selectedCrop}
+            onChange={item => {
+              setselectedCrop(item.value);
+            }}
+            renderLeftIcon={() => (
+              <AntDesign style={styles.icon} color="black" name="Safety" size={20} />
+            )}
+            renderItem={renderItem}
+          />
+      </View>
+
+     
+    </View>
+ )}
    
     <View className="justify-center mt-5" >
     <Text className="ml-6 text-lg mb-[-10px] font-pregular" >Select Products:</Text>

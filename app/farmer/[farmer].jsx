@@ -5,7 +5,7 @@ import InfoBox from '../../components/InfoBox';
 import { useLocalSearchParams,router } from 'expo-router';
 import useAppwrite from '../../lib/useAppwrite';
 import CustomButton from '../../components/CustomButton'
-import { getFarmerById, getFarmerDetails,getFarmerTransactions,getFarmerVisits } from '../../lib/appwrite';
+import { getFarmerById, getFarmerDetails,getFarmerTransactions,getFarmerVisits, getFarmerCrops} from '../../lib/appwrite';
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE,Polygon } from 'react-native-maps';
 import TransactionCard from '../../components/TransactionCard';
 
@@ -19,7 +19,7 @@ const Farmer = () => {
   const {data: transactiondata} = useAppwrite( ()=> getFarmerTransactions(item.$id));
   const {data: useid} =useAppwrite(()=> getFarmerById(item.$id))
   const {data: farmerDetails, loading} = useAppwrite( ()=> getFarmerDetails(item.$id));
-
+  const { data: cropsFromDB } = useAppwrite(() => getFarmerCrops(item.$id));
   const checker = useid && useid.users ? useid.users.$id : null;
 
 
@@ -38,6 +38,7 @@ const Farmer = () => {
   const [locationModalVisoble, setlocationModalVisoble] = useState(false);
   const [formatedCoords, setformatedCoords] = useState([]);
   const [isOutgrower, setisOutgrower] = useState(false);
+  const [farmerCrops, setFarmerCrops] = useState([]);
 
   
   let farmerDocument;
@@ -118,7 +119,15 @@ const Farmer = () => {
     longitudeDelta: 0.001,
   }
 
-
+  useEffect(() => {
+    if (cropsFromDB && Array.isArray(cropsFromDB.documents)) {
+      const formattedCrops = cropsFromDB.documents.map(crop => ({
+        label: crop.crop_name,
+        value: crop.$id,
+      }));
+      setFarmerCrops(formattedCrops);
+    }
+  }, [cropsFromDB]);
 
 
 
@@ -187,11 +196,11 @@ const Farmer = () => {
           <View>
  <View className="flex-row justify-between">
     <CustomButton
-      title="Edit Details"
+      title="Add Crop"
       containerStyles="w-[45%] mt-5 mr-3 rounded-lg bg-green-600"
       handlePress={() =>
         router.push({
-          pathname: `/farmer/edit-farmer`,
+          pathname: `farmer/add-crop`,
           params: { ...item, id: item.$id },
         })
       }
@@ -254,40 +263,26 @@ const Farmer = () => {
                Crops Grown
               </Text>
             </View>
-            <View className="flex-row flex-wrap mb-4 ml-5" >
-          {cropList.length > 0 ? ( 
-                cropList.map((crop, index) => (
-                  <Text 
-                  key={index} className="text-sm px-2 py-1 rounded-full bg-green-100 text-green-800 mx-1 my-1">
-                    {crop}
-                  </Text>
-                ))
-              ) : (
-                <Text>No Crops found</Text> 
-              )}
+          
+            <View className="flex-row flex-wrap mb-4 ml-5">
+            {farmerCrops.length > 0 ? (
+              farmerCrops.map((crop, index) => (
+                <Text
+                  key={index}
+                  className="text-sm px-2 py-1 rounded-full bg-green-100 text-green-800 mx-1 my-1"
+                >
+                  {crop.label}
+                </Text>
+              ))
+            ) : (
+              <Text>No Crops found</Text>
+            )}
           </View>
+
           </View>
 
     {/* View Treatments used */}
-    <View className="w-full  border-b border-slate-300">
-            <View className="mt-3 mb-3 ml-5" >
-              <Text className="text-sm font-psemibold" >
-              Treatments in Use
-              </Text>
-            </View>
-            <View className="flex-row flex-wrap mb-4 ml-5" >
-          {treatmentList.length > 0 ? ( 
-                treatmentList.map((treatment, index) => (
-                  <Text 
-                  key={index} className="text-sm px-2 py-1 rounded-full bg-secondary-100 text-white mx-1 my-1">
-                    {treatment}
-                  </Text>
-                ))
-              ) : (
-                <Text>No Treatments found</Text> 
-              )}
-          </View>
-          </View>
+   
            {/* View Farmer Transactions */}
         <View className="w-full  border-b border-slate-300 mb-20">
             <View className="mt-3 mb-3 ml-5" >
