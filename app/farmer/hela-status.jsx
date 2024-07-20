@@ -2,7 +2,7 @@ import {ScrollView, Modal, Text, View ,Alert,TouchableOpacity, ActivityIndicator
 import React,{useState,useEffect,useRef} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CustomButton from '../../components/CustomButton'
-import { checkAllAccounts, checkHelaAccount, createHelaAccount, getActiveHelaAccount } from '../../lib/appwrite'
+import { checkAllAccounts, checkHelaAccount, createHelaAccount, getActiveHelaAccount,closeHelaAccount } from '../../lib/appwrite'
 import { useLocalSearchParams,router } from 'expo-router';
 import useAppwrite from '../../lib/useAppwrite';
 import FormField from '../../components/FormField'
@@ -84,6 +84,18 @@ const HelaStatus = () => {
 
 
 
+  const closeAccount = async () => {
+    try {
+      await closeHelaAccount(farmerID);
+      Alert.alert("Success", "Farmer Transactions added successfully");
+      router.push("/home");
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setuploading(false);
+    }
+  }
+
 
 
   
@@ -99,7 +111,7 @@ const HelaStatus = () => {
     setuploading(true);
     try {
       await createHelaAccount(form);
-      Alert.alert("Success", "Farmer Transactions added successfully");
+      Alert.alert("Success", "Account closed successfully");
       router.push("/home");
     } catch (error) {
       Alert.alert("Error", error.message);
@@ -146,6 +158,7 @@ const HelaStatus = () => {
             <CustomButton
                 title="Close Account"
                 containerStyles="w-[45%] mt-5 rounded-lg bg-red-600 ml-[85px]"
+                handlePress={closeAccount}
                 />
 
   

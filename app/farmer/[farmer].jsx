@@ -15,52 +15,25 @@ const Farmer = () => {
 
   const item = useLocalSearchParams();
   const userID=item.userID;
-  const {data: visits} = useAppwrite( ()=> getFarmerVisits(item.$id));
+  const {data: visits, loading} = useAppwrite( ()=> getFarmerVisits(item.$id));
   const {data: transactiondata} = useAppwrite( ()=> getFarmerTransactions(item.$id));
   const {data: useid} =useAppwrite(()=> getFarmerById(item.$id))
-  const {data: farmerDetails, loading} = useAppwrite( ()=> getFarmerDetails(item.$id));
   const { data: cropsFromDB } = useAppwrite(() => getFarmerCrops(item.$id));
   const checker = useid && useid.users ? useid.users.$id : null;
 
 
   const [transactions, setTransactions] = useState([]);
-  const [crops, setcrops] = useState();
-  const [treatments, settreatments] = useState();
-  const[size,setSize] = useState(0);
   const[visit,setvisit] = useState(0);
   const [checkifEqual, setcheckifEqual] = useState(false);
-  const [location, setlocation] = useState();
-  const [longitude, setlongitude] = useState();
-  const [latitude, setlatitude] = useState();
-  const [Coordinates, setCoordinates] = useState([])
-  const [farmLocation, setfarmLocation] = useState([null, null]);
   const [showTouchableOpacity, setShowTouchableOpacity] = useState(false);
   const [locationModalVisoble, setlocationModalVisoble] = useState(false);
   const [formatedCoords, setformatedCoords] = useState([]);
   const [isOutgrower, setisOutgrower] = useState(false);
   const [farmerCrops, setFarmerCrops] = useState([]);
-
-  
-  let farmerDocument;
-  
-  if (farmerDetails && farmerDetails.documents) {
-    const farmerID = item.$id;
-    farmerDocument = farmerDetails.documents.find(doc => doc.farmerID === farmerID);
-  }
+  const [transactionscount, settransactionscount] = useState(0);
 
 
-  const cropList = crops ? crops.split(',') : [];
-  const treatmentList = treatments ? treatments.split(',') : [];
 
-
-  const isValidCoordinates = (longitude, latitude) => {
-    return !isNaN(parseFloat(longitude)) && !isNaN(parseFloat(latitude));
-  };
-
-  useEffect(() => {
-    console.log('Checking coordinates:', longitude, latitude);
-    setShowTouchableOpacity(isValidCoordinates(longitude, latitude));
-  }, [longitude, latitude]);
 
   useEffect(() => {
     if (userID === checker) {
@@ -71,60 +44,37 @@ const Farmer = () => {
       setisOutgrower(true);
     }
   
+    setvisit(visits.length);
+   
+  }, [userID, checker]);
+
   
-    if (farmerDocument) {
-      setcrops(farmerDocument.crops);
-      settreatments(farmerDocument.treatments);
-      setSize(farmerDocument.farm_size);
-      setvisit(visits.length);
-      setCoordinates(farmerDocument.coordinates);
-      const doc= farmerDocument.Farmcoordinates;
-      setfarmLocation(farmerDocument.Farmcoordinates);
-      const formattedCoordinates = Coordinates.map(coordString => {
-        const [latitude, longitude] = coordString.split(',').map(parseFloat);
-        return { latitude, longitude };
-      });
-      
-
-        setformatedCoords(formattedCoordinates)
-    };
-    
-    const [lat, long] = farmLocation;
-    setlatitude(parseFloat(lat));
-    setlongitude(parseFloat(long));
-
-
-  }, [userID, checker, farmerDocument]);
-
   
   useEffect(() => {
     const fetchTransactions = async () => {
-      if(transactiondata){
-        setTransactions(transactiondata.documents);
-      } 
+        if (transactiondata && transactiondata.documents) {
+            setTransactions(transactiondata.documents);
+            settransactionscount(transactiondata.documents.length);
+        }
     }
     fetchTransactions();
-  
-  }, [transactiondata]);
+}, [transactiondata]);
 
 
-  const checkcoords = async () =>{
-    setlocationModalVisoble(false);
-  }
-  
-  const initial ={
-    latitude: latitude,
-    longitude: longitude,
-    latitudeDelta: 0.001,
-    longitudeDelta: 0.001,
-  }
+ 
+
+
 
   useEffect(() => {
     if (cropsFromDB && Array.isArray(cropsFromDB.documents)) {
-      const formattedCrops = cropsFromDB.documents.map(crop => ({
-        label: crop.crop_name,
-        value: crop.$id,
-      }));
+      const formattedCrops =  cropsFromDB.documents.map(crop => {
+        const date = new Date(crop.planting_date);
+        const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`; // Format as DD-MM-YYYY
+        return {
+          label: `${crop.crop_name} ( ${formattedDate})`,
+          value: crop.$id,
+        };
+      });
       setFarmerCrops(formattedCrops);
     }
   }, [cropsFromDB]);
@@ -173,9 +123,9 @@ const Farmer = () => {
           titleStyles="text-xl"
          />
           <InfoBox 
-          title={size + " m²"}
+          title={transactionscount ?? 0}
           containerStyles="ml-10"
-          subtitle="Farm Size"
+          subtitle="Transactions"
           titleStyles="text-xl"
          />
          </View>
@@ -232,11 +182,11 @@ const Farmer = () => {
     />
     {isOutgrower && (
         <CustomButton
-          title="Hela Status"
+          title="Add Unit"
           containerStyles="w-[45%] mt-5 rounded-lg bg-green-300"
           handlePress={() =>
             router.push({
-              pathname: `/farmer/hela-status`,
+              pathname: `/farmer/create-unit`,
               params: { ...item, id: item.$id },
             })
           }
@@ -331,51 +281,7 @@ const Farmer = () => {
 
    
 
-      <Modal 
-     
-     animationType='slide'
-     transparent={true}
-     visible={locationModalVisoble}
-     onRequestClose={() => setlocationModalVisoble(false)}
-     >
-       <View className="flex items-center justify-center bg-white ">
-         <MapView 
-         className="h-[90%] w-[100%] "
-         provider={PROVIDER_GOOGLE}
-         initialRegion={initial}
-         mapType="satellite"
-         
-         >
-              <Polyline
-              coordinates={formatedCoords}
-              strokeColor="#27ac88"
-              strokeWidth={4}
-            />
-           <Polygon
-              coordinates={formatedCoords}
-              fillColor="rgba(255, 165, 0, 0.5)"
-              strokeColor="#000"
-              strokeWidth={1}
-            />
-
-                  {formatedCoords.map((coordinate, index) => (
-                    <Marker key={index} coordinate={coordinate} />
-                  ))}
-          
-          </MapView>
-            
       
-         
-         <CustomButton
-           title="Close Map"
-           handlePress={checkcoords}
-           containerStyles="mb-5 mt-3  w-[150px] bg-blue-400 "
-          
-         />
-
-       </View>
-      
-     </Modal>
 
           
       

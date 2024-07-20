@@ -17,13 +17,6 @@ const AddCrop = () => {
   
   
   const item = useLocalSearchParams();
-  const {data: farmerDetails, loading} = useAppwrite( ()=> getFarmerDetails(item.$id));
-  let documentId;
-
-  if (farmerDetails && farmerDetails.documents && farmerDetails.documents.length > 0) {
-    documentId = farmerDetails.documents[0].$id;
-  }
-  
   
   const crops = [
     { label: 'Maize', value: 'Maize' },
@@ -66,6 +59,7 @@ const AddCrop = () => {
   const [harvestDate, setHarvestDate] = useState(null);
   const [showPlantingPicker, setShowPlantingPicker] = useState(false);
   const [showHarvestPicker, setShowHarvestPicker] = useState(false);
+ 
 
 
   const handleDateChange = (event, selectedDate) => {
@@ -97,7 +91,6 @@ const AddCrop = () => {
     planting_date: date,
     harvest_date: harvestDate,
     field_size: '',
-    documentId: documentId,
     farmerID: item.id,
   });
 
@@ -145,15 +138,7 @@ const AddCrop = () => {
 
   return (
  <SafeAreaView className="h-full " >
-    <Modal
-        transparent={true}
-        animationType={'none'}
-        visible={loading}
-        onRequestClose={() => { console.log('close modal') }}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#00000040' }}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      </Modal>
+   
   <ScrollView className="px-4 my-6" >
       <View className="w-16 h-16 border border-secondary rounded-lg justify-center items-center ml-36" >
 

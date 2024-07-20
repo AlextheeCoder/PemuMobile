@@ -2,7 +2,7 @@ import {StyleSheet, ScrollView, Modal, Text, View ,Alert,TouchableOpacity, Activ
 import React,{useState,useEffect,useRef} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CustomButton from '../../components/CustomButton'
-import {getAllProducts, createFarmerTransaction, updateHelaAccount,getFarmerCrops } from '../../lib/appwrite'
+import {getAllProducts, createFarmerTransaction,getFarmerCrops,checkHelaAccount, getFarmerUnits } from '../../lib/appwrite'
 import { useLocalSearchParams,router } from 'expo-router';
 import useAppwrite from '../../lib/useAppwrite';
 import { MultiSelect,Dropdown } from 'react-native-element-dropdown';
@@ -15,16 +15,13 @@ const CreateTransaction = () => {
   const item = useLocalSearchParams();
   const { data: productsFromDB, loading } = useAppwrite(getAllProducts);
   const { data: cropsFromDB } = useAppwrite(() => getFarmerCrops(item.$id));
-  const [farmerCrops, setFarmerCrops] = useState([]);
+  const { data: unitsFromDB } = useAppwrite(() => getFarmerUnits(item.$id));
 
-
-  // console.log(combinedName);
 
 
   const units = [
     { label: 'Liters', value: 'liters' },
     { label: 'Kilograms', value: 'kgs' }, 
-    { label: 'Bucket', value: 'bkt' },
     { label: 'Bucket', value: 'bkt' },
   ];
   
@@ -45,6 +42,9 @@ const CreateTransaction = () => {
   const [salesPrice, setsalesPrice] = useState(null);
   const [selectedProductSalesPrice, setSelectedProductSalesPrice] = useState(null);
   const [selectedCrop, setselectedCrop] = useState(null);
+  const [unitID, setunitID] = useState(null);
+  const [farmerCrops, setFarmerCrops] = useState([]);
+  const [farmerUnits, setfarmerUnits] = useState([])
   const helaFarmerID =item.$id;
 
    const [form, setform] = useState({
@@ -54,12 +54,15 @@ const CreateTransaction = () => {
     units:selectedUnits,
     payment_method:selectedmethodofPayment,
     Mpesa_Code:'',
+    unitID:'',
     farmerID: item.$id,
     CropID: selectedCrop,
   });
   
+  //get current active hela account Id
 
-  console.log(selectedCrop);
+
+
   
   useEffect(() => {
     if (item.type === "Outgrower"){
@@ -71,6 +74,7 @@ const CreateTransaction = () => {
     }
    
   }, []);
+
 
 
 
@@ -101,6 +105,20 @@ const CreateTransaction = () => {
       setFarmerCrops(formattedCrops);
     }
   }, [cropsFromDB]);
+
+  useEffect(() => {
+    if (unitsFromDB && Array.isArray(unitsFromDB.documents)) {
+      const formattedUnits = unitsFromDB.documents.map(unit => {
+        const date = new Date(unit.$createdAt);
+        const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`; // Format as DD-MM-YYYY
+        return {
+          label: `${unit.unit_name} (Created: ${formattedDate})`,
+          value: unit.$id,
+        };
+      });
+      setfarmerUnits(formattedUnits);
+    }
+  }, [unitsFromDB]);
   
   
 
@@ -135,10 +153,10 @@ const CreateTransaction = () => {
         setform(prevForm => ({
           ...prevForm,
           amount: value,
+          unitID: unitID,
         }));
-        await updateHelaAccount({ ...form, amount: value }, helaFarmerID);
         await createFarmerTransaction({ ...form, amount: value });
-        Alert.alert("Success", "Hela Farmer Transaction added successfully");
+        Alert.alert("Success", "Outgorwer Transaction added successfully");
         router.push("/home");
       } else {
         const qua = parseFloat(form.quantity);
@@ -178,6 +196,8 @@ const CreateTransaction = () => {
       units: selectedUnits,
       payment_method:selectedmethodofPayment,
       CropID: selectedCrop,
+      unitID: unitID,
+      
     }));
   }, [selectedUnits, selectedProducts,selectedmethodofPayment,selectedCrop]);
 
@@ -208,6 +228,9 @@ const CreateTransaction = () => {
       <Text className="text-xl font-bold text-slate-500 ">
         Transact with {item.name}
       </Text>
+
+
+
     </View>
 
     {item.type === 'Outgrower' && (
@@ -230,6 +253,38 @@ const CreateTransaction = () => {
             value={selectedCrop}
             onChange={item => {
               setselectedCrop(item.value);
+            }}
+            renderLeftIcon={() => (
+              <AntDesign style={styles.icon} color="black" name="Safety" size={20} />
+            )}
+            renderItem={renderItem}
+          />
+      </View>
+
+     
+    </View>
+ )}
+
+ {item.type === 'Outgrower' && (
+    <View className="justify-center mt-5" >
+    <Text className="ml-6 text-lg mb-[-10px] font-pregular" >Select Unit:</Text>
+    <View style={styles.container}>
+    <Dropdown
+            style={styles.dropdown}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.inputSearchStyle}
+            iconStyle={styles.iconStyle}
+            data={farmerUnits}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Unit"
+            search
+            searchPlaceholder="Search..."
+            value={unitID}
+            onChange={item => {
+              setunitID(item.value);
             }}
             renderLeftIcon={() => (
               <AntDesign style={styles.icon} color="black" name="Safety" size={20} />

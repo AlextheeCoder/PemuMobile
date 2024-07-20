@@ -20,8 +20,7 @@ const Home = () => {
   const openWeatherKey = '01a34fc2805351837988550053ecf642'
   const {data: farmers, refetch,loading} = useAppwrite(getLatestFarmers);
   const {data: visits} = useAppwrite(getLatestVisits);
-  const {data: topcrop} = useAppwrite(getTopCrop);
-  const {data: topInput} = useAppwrite(getTopInput);
+
 
   const {user} = useGlobalContext();
   const  url = `https://api.openweathermap.org/data/2.5/weather?units=metric&appid=${openWeatherKey}`;
@@ -33,8 +32,7 @@ const Home = () => {
   const [temperature, setTemperature] = useState(null);
   const [currentWeather, setCurrentWeather] = useState(null);
   const [latest, setlatest]=useState([]);
-  const [TopCrop, setTopCrop] = useState();
-  const [TopInput, setTopInput] = useState();
+
   const [loadingBlogs, setloadingBlogs] = useState(true);
 
 
@@ -51,20 +49,6 @@ const Home = () => {
       });
   }, []);
 
-
-  useEffect(() => {
-    const fetchTopCrop = async () => {
-      try {
-        setTopCrop(topcrop);
-        setTopInput(topInput);
-      } catch (error) {
-        console.error('Error fetching top crop:', error);
-      }
-    };
-
-    fetchTopCrop();
-  }, []);
-  
 
 
 
@@ -199,18 +183,7 @@ const Home = () => {
              
               info={
                 <View className="mt-[-20px] ">
-                    <Text className="font-p-regular text-white text-lg" >
-                        Top Crop 🌱
-                    </Text>
-                    <Text className="text-secondary text-lg font-psemibold mt-4" >
-                      {topcrop}
-                    </Text>
-                    <Text className="font-p-regular text-white text-lg" >
-                        Top Input 🚜
-                    </Text>
-                    <Text className="text-secondary text-lg font-psemibold mt-4" >
-                      {topInput}
-                    </Text>
+                    
                 </View>
               
               }
