@@ -40,6 +40,8 @@ const RootLayout = () => {
       <Stack.Screen name='farmer/create-vist' options={{headerShown: true, headerTitle:"Create Visit"}} />
       <Stack.Screen name='farmer/add-crop' options={{headerShown: true, headerTitle:"Add Crop"}} />
       <Stack.Screen name='farmer/create-unit' options={{headerShown: true, headerTitle:"Create Unit"}} />
+      <Stack.Screen name='farmer/create-harvest' options={{headerShown: true, headerTitle:"Create Harvest"}} />
+      <Stack.Screen name='farmer/create-payment' options={{headerShown: true, headerTitle:"Create Payment"}} />
       <Stack.Screen name='allview/farmers' options={{headerShown: true, headerTitle:"All Farmers"}} />
       <Stack.Screen name='allview/visits' options={{headerShown: true, headerTitle:"All Visits"}} />
       <Stack.Screen name='allview/blogs' options={{headerShown: true, headerTitle:"All Blogs"}} />

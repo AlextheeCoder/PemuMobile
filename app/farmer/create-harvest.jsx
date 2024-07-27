@@ -2,7 +2,7 @@ import {StyleSheet, ScrollView, Modal, Text, View ,Alert, ActivityIndicator,Imag
 import React,{useState,useEffect} from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../../components/CustomButton';
-import {createFarmerUnit, getFarmerCrops_Units} from '../../lib/appwrite';
+import {createFarmerHarvest, createFarmerUnit, getFarmerCrops_Units} from '../../lib/appwrite';
 import { useLocalSearchParams,router } from 'expo-router';
 import useAppwrite from '../../lib/useAppwrite';
 import {Dropdown } from 'react-native-element-dropdown';
@@ -12,7 +12,7 @@ import FormField from '../../components/FormField'
 
 
 
-const Createunit = () => {
+const CreateHarvest = () => {
   
   
   const item = useLocalSearchParams();
@@ -26,7 +26,10 @@ const Createunit = () => {
   const [selectedCrop, setselectedCrop] = useState(null);
   const [form, setform] = useState({
     CropID: selectedCrop,
-    unit_name: '',
+    total_kgs: '',
+    accepted_kgs: '',
+    value_per_kg: '',
+    total_value: '',
     farmerID: item.id,
   });
 
@@ -54,14 +57,21 @@ const Createunit = () => {
  
 
   const submit = async () => {
-    if (!form.unit_name || !form.CropID) {
+    if (!form.total_kgs || !form.accepted_kgs || !form.value_per_kg || !form.CropID) {
       return Alert.alert("Incomplete Form","Please provide all fields");
     }
 
     setuploading(true);
     try {
-      await createFarmerUnit(form);
-      Alert.alert("Success", "Unit added successfully");
+      const qua = parseFloat(form.accepted_kgs);
+      const salo = parseFloat(form.value_per_kg);
+      const value = (qua * salo).toString();
+      setform(prevForm => ({
+        ...prevForm,
+        total_value: value,
+      }));
+      await createFarmerHarvest({ ...form, total_value: value });
+      Alert.alert("Success", "Harvest record added successfully");
       router.push("/home");
     } catch (error) {
       Alert.alert("Error", error.message);
@@ -92,7 +102,7 @@ const Createunit = () => {
   }, [selectedCrop]);
 
   return (
- <SafeAreaView className="h-full " >
+ <SafeAreaView className="h-full bg-white">
      <Modal
         transparent={true}
         animationType={'none'}
@@ -120,7 +130,7 @@ const Createunit = () => {
    
 
     <View className="justify-center mt-5" >
-   <Text  className="ml-6 text-lg mb-[-10px] font-pregular" >Select Crop:</Text>
+   <Text className="ml-6 text-lg mb-[-10px] font-pregular" >Select Crop:</Text>
     <View style={styles.container}>
     <Dropdown
             style={styles.dropdown}
@@ -154,19 +164,43 @@ const Createunit = () => {
 
 
 
-<View className="justify-center items-center" >
+<View className="justify-center items-center mt-2" >
   <FormField 
-    title={<Text className="text-lg font-pregular" >Unit Name:</Text>}
-    value={form.unit_name}
-    placeholder="Unit Name"
-    handleChangeText={(e) => setform({...form, unit_name: e})}
+    title={<Text className="text-lg font-pregular" >Total Kgs:</Text>}
+    value={form.total_kgs}
+    placeholder="Total Kgs"
+    handleChangeText={(e) => setform({...form, total_kgs: e})}
+    keyboardType="number-pad"
+    otherStyles="w-[90%]"
+  />
+
+</View>
+<View className="justify-center items-center mt-5" >
+  <FormField 
+    title={<Text className="text-lg font-pregular" >Accepted Kgs:</Text>}
+    value={form.accepted_kgs}
+    placeholder="Total Kgs"
+    handleChangeText={(e) => setform({...form, accepted_kgs: e})}
+    keyboardType="number-pad"
+    otherStyles="w-[90%]"
+  />
+
+</View>
+
+<View className="justify-center items-center mt-5" >
+  <FormField 
+    title={<Text className="text-lg font-pregular" >Value per Kg:</Text>}
+    value={form.value_per_kg}
+    placeholder="Value per Kg"
+    handleChangeText={(e) => setform({...form, value_per_kg: e})}
+    keyboardType="number-pad"
     otherStyles="w-[90%]"
   />
 
 </View>
 
       <CustomButton
-      title="Add Unit"
+      title="Create Harvest"
       containerStyles="mt-7"
       isLoading={uploading}
       handlePress={submit}
@@ -178,7 +212,7 @@ const Createunit = () => {
   )
 }
 
-export default Createunit;
+export default CreateHarvest;
 
 const styles = StyleSheet.create({
   container: { padding: 16 },

@@ -82,7 +82,7 @@ const Farmer = () => {
 
 
   return (
-    <SafeAreaView  className="min-h-[85vh]" >
+    <SafeAreaView  className="min-h-[85vh] bg-white" >
         <Modal
         transparent={true}
         animationType={'none'}
@@ -193,6 +193,32 @@ const Farmer = () => {
         />
     )}
   </View>
+
+  {isOutgrower && (
+  <View className="flex-row justify-between" >
+        <CustomButton
+          title="Record Harvest"
+          containerStyles="w-[45%] mt-5 rounded-lg bg-purple-500"
+          handlePress={() =>
+            router.push({
+              pathname: `/farmer/create-harvest`,
+              params: { ...item, id: item.$id },
+            })
+          }
+        />
+
+        <CustomButton
+        title="Record Payment"
+        containerStyles="w-[45%] mt-5 rounded-lg bg-red-300"
+        handlePress={() =>
+          router.push({
+            pathname: `/farmer/create-payment`,
+            params: { ...item, id: item.$id },
+          })
+        }
+      />
+  </View>
+)}
   
 
 
