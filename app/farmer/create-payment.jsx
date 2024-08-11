@@ -2,7 +2,7 @@ import {StyleSheet, ScrollView, Modal, Text, View ,Alert,TouchableOpacity, Activ
 import React,{useState,useEffect,useRef} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CustomButton from '../../components/CustomButton'
-import { updateHarvestdetails,getFarmerHarvests, createPemuPayment } from '../../lib/appwrite'
+import { updateHarvestdetails,getFarmerHarvests, createPemuPayment, UpdateCropDebtPayment } from '../../lib/appwrite'
 import { useLocalSearchParams,router } from 'expo-router';
 import useAppwrite from '../../lib/useAppwrite';
 import { MultiSelect } from 'react-native-element-dropdown';
@@ -25,14 +25,18 @@ const CreatePayment = () => {
   const [harvests, setharvests] = useState([]);
   const [selectedHarvests, setselectedHarvests] = useState([]);
   const [TotalValue, setTotalValue] = useState(0);
+  const [TotalDebt, setTotalDebt] = useState(0);
   const [PayableAmount, setPayableAmount] = useState(0);
+
 
 
 
    const [form, setform] = useState({
     HarvestIDs: selectedHarvests.join(','),
-    amount_deducted: '',
+    amount_deducted: '0',
     amount_payed: '',
+    debt_balance: '',
+    CropID: '',
     farmerID: item.id,
   });
   
@@ -43,9 +47,9 @@ const CreatePayment = () => {
       const formattedHarvests = farmerHarvests.documents.map(harvest => {
         const date = new Date(harvest.$createdAt);
         const total = parseFloat(harvest.total_value);
-        const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`; // Format as DD-MM-YYYY
+        const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
         return {
-          label: `Crop: ${harvest.CropID.crop_name} (Harvest Date: ${formattedDate}) Total Value: KES${harvest.total_value}`,
+          label: `Crop: ${harvest.CropID.crop_name} (Harvest Date: ${formattedDate}) Total Value: KES${harvest.total_value}\nCrop Debt: KES${harvest.CropID.debt}`,
           value: harvest.$id,
           totalValue: Number(total), 
         };
@@ -55,39 +59,115 @@ const CreatePayment = () => {
   }, [farmerHarvests]);
 
   useEffect(() => {
+    if (selectedHarvests.length > 0 && farmerHarvests) {
+      const uniqueCropIds = new Set();
+
+      selectedHarvests.forEach(id => {
+        const matchingDocument = farmerHarvests.documents.find(doc => doc.$id === id);
+        if (matchingDocument) {
+          uniqueCropIds.add(matchingDocument.CropID.$id);
+        }
+      });
+
+      if (uniqueCropIds.size === 1) {
+        const cropId = [...uniqueCropIds][0];
+        setform(prevForm => ({
+          ...prevForm,
+          HarvestIDs: selectedHarvests.join(','),
+          CropID: cropId,
+        }));
+      } else {
+        setform(prevForm => ({
+          ...prevForm,
+          HarvestIDs: '',
+          CropID: '',
+        }));
+        Alert.alert("Invalid Selection", "Please ensure all selected harvests are of the same crop.");
+      }
+    }
+  }, [selectedHarvests, farmerHarvests]);
+
+
+  useEffect(() => {
     const totalValueSum = selectedHarvests.reduce((sum, id) => {
       const selectedHarvest = harvests.find(harvest => harvest.value === id);
       return sum + (selectedHarvest ? selectedHarvest.totalValue : 0);
     }, 0);
+
+    const debtByCropId = {};
+    const processedCropIds = new Set();
+
+    selectedHarvests.forEach(id => {
+      const matchingDocument = farmerHarvests.documents.find(doc => doc.$id === id);
+      if (matchingDocument) {
+        const cropId = matchingDocument.CropID.$id;
+        const cropDebt = parseFloat(matchingDocument.CropID.debt);
+
+        if (!processedCropIds.has(cropId)) {
+          if (debtByCropId[cropId]) {
+            debtByCropId[cropId] += cropDebt;
+          } else {
+            debtByCropId[cropId] = cropDebt;
+          }
+
+          processedCropIds.add(cropId);
+        }
+      }
+    });
+
+    const totalDebt = Object.values(debtByCropId).reduce((acc, debt) => acc + debt, 0);
+
+    setTotalDebt(totalDebt);
     setTotalValue(totalValueSum);
+
     const payableAmount = totalValueSum - (form.amount_deducted ? parseFloat(form.amount_deducted) : 0);
     setPayableAmount(payableAmount);
 
-  }, [selectedHarvests, harvests,form.amount_deducted]);
+  }, [selectedHarvests, harvests, farmerHarvests, form.amount_deducted]);
+  
+  //  console.log(farmerHarvests.documents[2]);
+  // console.log("Total Debt:", TotalDebt);
   
   
-  
-
   const submit = async () => {
+    // Check if form is ready for submission
     if (!form.HarvestIDs || !form.amount_deducted) {
-      return Alert.alert("Incomplete Form","Please provide all fields");
+      return Alert.alert("Incomplete Form", "Please provide all fields");
     }
-
+  
+    // Ensure all selected harvests have the same CropID
+    const uniqueCropIds = new Set();
+  
+    selectedHarvests.forEach(id => {
+      const matchingDocument = farmerHarvests.documents.find(doc => doc.$id === id);
+      if (matchingDocument) {
+        uniqueCropIds.add(matchingDocument.CropID.$id);
+      }
+    });
+  
+    // If more than one unique CropID is found, prevent submission
+    if (uniqueCropIds.size > 1) {
+      return Alert.alert("Invalid Selection", "Please ensure all selected harvests are of the same crop before submitting.");
+    }
+  
     setuploading(true);
+  
     try {
       const updatePromises = selectedHarvests.map(documentId => updateHarvestdetails(documentId));
       await Promise.all(updatePromises);
-
+  
+      await UpdateCropDebtPayment(form);
       await createPemuPayment(form);
       Alert.alert("Success", "Farmer Payment added successfully");
       router.push("/home");
     } catch (error) {
       Alert.alert("Error", error.message);
     } finally {
-      
       setuploading(false);
     }
-  }
+  };
+  
+  
 
 
 
@@ -100,6 +180,7 @@ const CreatePayment = () => {
       ...prevForm,
       HarvestIDs: selectedHarvests.join(','),
       amount_payed: PayableAmount.toString(),
+      debt_balance: TotalDebt.toString(),
     }));
   }, [selectedHarvests,PayableAmount]);
   
@@ -192,16 +273,32 @@ const CreatePayment = () => {
         <Text className="text-lg font-pregular text-primary">KES {TotalValue}</Text>
       </View>
 
-    <FormField
-      title={<Text className="text-lg font-pregular" >Amount to be Deducted:</Text>}
-      value={form.amount_deducted}
-      placeholder="Enter Amount"
-      handleChangeText={(e) => setform({...form, amount_deducted: e})}
+      <Text className="text-lg font-pregular ml-5 -mb-3 mt-5" >Total Debt Selected:</Text>
+      <View className="flex flex-row items-center p-4 bg-white shadow-md rounded-lg mt-5 w-[90%] text-white border border-red-600 justify-center ml-5">
+        <Text className="text-sm font-pregular">Total Debt: </Text>
+        <Text className="text-lg font-pregular text-red-600">KES {TotalDebt}</Text>
+      </View>
+
+      {TotalDebt > 0 ? (
+      <FormField
+        title={<Text className="text-lg font-pregular">Amount to be Deducted:</Text>}
+        value={form.amount_deducted}
+        placeholder="Enter Amount"
+        handleChangeText={(e) => setform({ ...form, amount_deducted: e })}
+        otherStyles="mt-5 w-[90%] ml-5 mb-5"
+        keyboardType="number-pad"
+      />
+    ) : (
+      <FormField
+      title={<Text className="text-lg font-pregular">Amount to be Deducted:</Text>}
+      value={form.amount_deducted} 
+      placeholder="Famer has no debt"
       otherStyles="mt-5 w-[90%] ml-5 mb-5"
       keyboardType="number-pad"
-
-     /> 
-
+      editable={false}
+      showPlaceholderOnly={true} 
+    />
+    )}
 <Text className="text-lg font-pregular ml-5 -mb-3" >Amount Payable:</Text>
       <View className="flex flex-row items-center p-4 bg-white shadow-md rounded-lg mt-5 w-[90%] text-white border border-primary justify-center ml-5">
         <Text className="text-sm font-pregular">Total Payable: </Text>

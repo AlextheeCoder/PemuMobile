@@ -2,7 +2,7 @@ import {StyleSheet, ScrollView, Modal, Text, View ,Alert,TouchableOpacity, Activ
 import React,{useState,useEffect,useRef} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CustomButton from '../../components/CustomButton'
-import {getAllProducts, createFarmerTransaction,getFarmerCrops,checkHelaAccount, getFarmerUnits } from '../../lib/appwrite'
+import {getAllProducts, createFarmerTransaction,getFarmerCrops,checkHelaAccount, getFarmerUnits, UpdateCropDebt } from '../../lib/appwrite'
 import { useLocalSearchParams,router } from 'expo-router';
 import useAppwrite from '../../lib/useAppwrite';
 import { MultiSelect,Dropdown } from 'react-native-element-dropdown';
@@ -156,6 +156,7 @@ const CreateTransaction = () => {
           unitID: unitID,
         }));
         await createFarmerTransaction({ ...form, amount: value });
+        await UpdateCropDebt({ ...form, amount: value });
         Alert.alert("Success", "Outgorwer Transaction added successfully");
         router.push("/home");
       } else {
