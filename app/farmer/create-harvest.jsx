@@ -65,7 +65,7 @@ const CreateHarvest = () => {
     try {
       const qua = parseFloat(form.accepted_kgs);
       const salo = parseFloat(form.value_per_kg);
-      const value = (qua * salo).toString();
+      const value = (qua * salo).toFixed(2).toString();
       setform(prevForm => ({
         ...prevForm,
         total_value: value,

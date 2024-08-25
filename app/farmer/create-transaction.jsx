@@ -15,7 +15,7 @@ const CreateTransaction = () => {
   const item = useLocalSearchParams();
   const { data: productsFromDB, loading } = useAppwrite(getAllProducts);
   const { data: cropsFromDB } = useAppwrite(() => getFarmerCrops(item.$id));
-  const { data: unitsFromDB } = useAppwrite(() => getFarmerUnits(item.$id));
+
 
 
 
@@ -42,10 +42,9 @@ const CreateTransaction = () => {
   const [salesPrice, setsalesPrice] = useState(null);
   const [selectedProductSalesPrice, setSelectedProductSalesPrice] = useState(null);
   const [selectedCrop, setselectedCrop] = useState(null);
-  const [unitID, setunitID] = useState(null);
+  
   const [farmerCrops, setFarmerCrops] = useState([]);
-  const [farmerUnits, setfarmerUnits] = useState([])
-  const helaFarmerID =item.$id;
+
 
    const [form, setform] = useState({
     products: selectedProducts,
@@ -54,7 +53,6 @@ const CreateTransaction = () => {
     units:selectedUnits,
     payment_method:selectedmethodofPayment,
     Mpesa_Code:'',
-    unitID:'',
     farmerID: item.$id,
     CropID: selectedCrop,
   });
@@ -106,20 +104,7 @@ const CreateTransaction = () => {
     }
   }, [cropsFromDB]);
 
-  useEffect(() => {
-    if (unitsFromDB && Array.isArray(unitsFromDB.documents)) {
-      const formattedUnits = unitsFromDB.documents.map(unit => {
-        const date = new Date(unit.$createdAt);
-        const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`; // Format as DD-MM-YYYY
-        return {
-          label: `${unit.unit_name} (Created: ${formattedDate})`,
-          value: unit.$id,
-        };
-      });
-      setfarmerUnits(formattedUnits);
-    }
-  }, [unitsFromDB]);
-  
+
   
 
 
@@ -149,11 +134,11 @@ const CreateTransaction = () => {
       if (selectedmethodofPayment === "Hela") {
         const qua = parseFloat(form.quantity);
         const salo = parseFloat(selectedProductSalesPrice);
-        const value = (qua * salo).toString();
+        const value = (qua * salo).toFixed(2).toString();
         setform(prevForm => ({
           ...prevForm,
           amount: value,
-          unitID: unitID,
+         
         }));
         await createFarmerTransaction({ ...form, amount: value });
         await UpdateCropDebt({ ...form, amount: value });
@@ -162,7 +147,7 @@ const CreateTransaction = () => {
       } else {
         const qua = parseFloat(form.quantity);
         const salo = parseFloat(selectedProductSalesPrice);
-        const value = (qua * salo).toString();
+        const value = (qua * salo).toFixed(2).toString();
         setform(prevForm => ({
           ...prevForm,
           amount: value,
@@ -197,7 +182,7 @@ const CreateTransaction = () => {
       units: selectedUnits,
       payment_method:selectedmethodofPayment,
       CropID: selectedCrop,
-      unitID: unitID,
+    
       
     }));
   }, [selectedUnits, selectedProducts,selectedmethodofPayment,selectedCrop]);
@@ -266,37 +251,7 @@ const CreateTransaction = () => {
     </View>
  )}
 
- {item.type === 'Outgrower' && (
-    <View className="justify-center mt-5" >
-    <Text className="ml-6 text-lg mb-[-10px] font-pregular" >Select Unit:</Text>
-    <View style={styles.container}>
-    <Dropdown
-            style={styles.dropdown}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            iconStyle={styles.iconStyle}
-            data={farmerUnits}
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder="Select Unit"
-            search
-            searchPlaceholder="Search..."
-            value={unitID}
-            onChange={item => {
-              setunitID(item.value);
-            }}
-            renderLeftIcon={() => (
-              <AntDesign style={styles.icon} color="black" name="Safety" size={20} />
-            )}
-            renderItem={renderItem}
-          />
-      </View>
 
-     
-    </View>
- )}
    
     <View className="justify-center mt-5" >
     <Text className="ml-6 text-lg mb-[-10px] font-pregular" >Select Products:</Text>

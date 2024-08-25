@@ -91,6 +91,8 @@ const AddCrop = () => {
     planting_date: date,
     harvest_date: harvestDate,
     field_size: '',
+    units_number: '',
+    seeds_number: '',
     farmerID: item.id,
   });
 
@@ -230,6 +232,29 @@ const AddCrop = () => {
 
 
 <View className="justify-center items-center" >
+<Text className="ml-[-150px] text-xl mb-[-20px] font-pmedium" >Number of Units:</Text>
+  <FormField 
+    value={form.units_number}
+    placeholder="Number of Units"
+    handleChangeText={(e) => setform({...form, units_number: e})}
+    otherStyles="w-[90%]"
+    keyboardType="number-pad"
+  />
+
+</View>
+<View className="justify-center items-center mt-5" >
+<Text className="ml-[-110px] text-xl mb-[-20px] font-pmedium" >Number of Seeds:</Text>
+  <FormField 
+    value={form.seeds_number}
+    placeholder="Number of Seeds"
+    handleChangeText={(e) => setform({...form, seeds_number: e})}
+    otherStyles="w-[90%]"
+    keyboardType="number-pad"
+  />
+
+</View>
+
+<View className="justify-center items-center mt-5" >
 <Text className="ml-[-110px] text-xl mb-[-20px] font-pmedium" >Enter Field Size in m²:</Text>
   <FormField 
     value={form.field_size}
@@ -240,7 +265,6 @@ const AddCrop = () => {
   />
 
 </View>
-
 
 
       <CustomButton

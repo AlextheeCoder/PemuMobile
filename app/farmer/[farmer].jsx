@@ -180,7 +180,7 @@ const Farmer = () => {
         })
       }
     />
-    {isOutgrower && (
+    {/* {isOutgrower && (
         <CustomButton
           title="Add Unit"
           containerStyles="w-[45%] mt-5 rounded-lg bg-green-300"
@@ -191,7 +191,7 @@ const Farmer = () => {
             })
           }
         />
-    )}
+    )} */}
   </View>
 
   {isOutgrower && (
